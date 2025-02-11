@@ -3,11 +3,19 @@ const path = require('path');
 const { exec } = require('child_process');
 require('./config/dotenv');
 const authRoutes = require('./routes/authRoutes');
+const cors = require('cors');
 
 const app = express();
 app.use(express.json());  
 
-
+const corsOptions = {
+    origin: "*", 
+    methods: ["GET", "POST"],
+    allowedHeaders: ["Content-Type"],
+  };
+  
+app.use(cors(corsOptions));
+  
 const jsonServerPath = './db.json'; 
 const jsonServerCommand = `npx json-server --watch ${jsonServerPath} --port 3000`;
 

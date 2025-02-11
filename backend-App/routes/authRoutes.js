@@ -5,21 +5,22 @@ const db = require('../db.json');
 
 
 router.post('/login', (req, res) => {
-  const { secretKey } = req.body;
-  const warehouseman = db.warehousemans.find(user => user.secretKey === secretKey);
-
-  if (warehouseman) {
-    return res.status(200).json({
-      message: 'Authentication successful',
-      user: {
-        id: warehouseman.id,
-        name: warehouseman.name,
-        warehouseId: warehouseman.warehouseId
-      }
-    });
-  } else {
-    return res.status(401).json({ message: 'Invalid secretKey' });
-  }
-});
-
+    console.log("Received request:", req.body);
+    const { secretKey } = req.body;
+    const warehouseman = db.warehousemans.find(user => user.secretKey === secretKey);
+  
+    if (warehouseman) {
+      return res.status(200).json({
+        message: 'Authentication successful',
+        user: {
+          id: warehouseman.id,
+          name: warehouseman.name,
+          warehouseId: warehouseman.warehouseId
+        }
+      });
+    } else {
+      return res.status(401).json({ message: 'Invalid secretKey' });
+    }
+  });
+  
 module.exports = router;
