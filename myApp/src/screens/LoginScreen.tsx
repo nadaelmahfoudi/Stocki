@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { View, TextInput, Image, StyleSheet, Text, Button } from "react-native";
 import axios from "axios";
 import { useNavigation } from "@react-navigation/native";
+import { useUser } from "../context/UserContext"; 
 
-const LoginScreen = () => {
-  const [secretKey, setSecretKey] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
+const LoginScreen: React.FC = () => {
+  const [secretKey, setSecretKey] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const { setUser } = useUser(); 
   const navigation = useNavigation();
 
   const handleLogin = async () => {
@@ -16,8 +18,8 @@ const LoginScreen = () => {
 
       const user = response.data.user;
       setErrorMessage("");
-
-      navigation.navigate("Home", { user });
+      setUser(user);  
+      navigation.navigate("Home");  
 
     } catch (error) {
       console.error("Login Error:", error.response?.data || error.message);

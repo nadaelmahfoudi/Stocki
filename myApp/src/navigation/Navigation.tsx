@@ -1,20 +1,18 @@
-import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
+import React, { useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
-import LoginScreen from "../screens/LoginScreen";
-import HomeScreen from "../screens/HomeScreen";
+import DrawerNavigation from "./DrawerNavigation";  
+import { useUser } from "../context/UserContext"; 
+import LoginScreen from "../screens/LoginScreen"; 
 
-const Stack = createStackNavigator();
 
-const Navigator = () => {
-    return (
-        <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Home" component={HomeScreen} />
-            </Stack.Navigator>
-        </NavigationContainer>
-    );
+const Navigator: React.FC = () => {
+  const { user } = useUser(); 
+
+  return (
+    <NavigationContainer>
+      {user ? <DrawerNavigation /> : <LoginScreen />} 
+    </NavigationContainer>
+  );
 };
 
 export default Navigator;
