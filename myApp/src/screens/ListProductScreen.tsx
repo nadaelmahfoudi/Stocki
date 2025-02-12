@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, FlatList, Image, ActivityIndicator, Modal, Button } from "react-native";
 import axios from "axios";
 
 const ListProductScreen: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null); 
+  const [modalVisible, setModalVisible] = useState(false); 
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -20,6 +22,11 @@ const ListProductScreen: React.FC = () => {
 
     fetchProducts();
   }, []);
+
+  const showProductDetails = (product: any) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
 
   if (loading) {
     return (
@@ -42,10 +49,49 @@ const ListProductScreen: React.FC = () => {
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.type}>{item.type}</Text>
               <Text style={styles.price}>Prix: {item.price} DH</Text>
+              <Button title="Afficher les détails" onPress={() => showProductDetails(item)} />
             </View>
           </View>
         )}
       />
+
+      {selectedProduct && (
+        <Modal
+  animationType="slide"
+  transparent={true}
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)}
+>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContent}>
+      <Text style={styles.modalTitle}>{selectedProduct.name}</Text>
+      <Text style={styles.modalText}>
+        <Text style={styles.modalTextBold}>Type: </Text>
+        {selectedProduct.type}
+      </Text>
+      <Text style={styles.modalText}>
+        <Text style={styles.modalTextBold}>Supplier: </Text>
+        {selectedProduct.supplier}
+      </Text>
+      <Text style={styles.modalText}>
+        <Text style={styles.modalTextBold}>Price: </Text>
+        {selectedProduct.price} DH
+      </Text>
+      <Text style={styles.modalText}>
+        <Text style={styles.modalTextBold}>Stock Locations:</Text>
+      </Text>
+      {selectedProduct.stocks.map((stock: any, index: number) => (
+        <Text key={index} style={styles.modalText}>
+          <Text style={styles.modalTextBold}>{stock.name} </Text>
+          (Quantity: {stock.quantity}) - {stock.localisation.city}
+        </Text>
+      ))}
+      <Button title="Fermer" onPress={() => setModalVisible(false)} />
+    </View>
+  </View>
+</Modal>
+
+      )}
     </View>
   );
 };
@@ -54,10 +100,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f8f9fa",
-    padding: 10,
+    padding: 15,
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: "bold",
     textAlign: "center",
     marginVertical: 20,
@@ -71,37 +117,73 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: "row",
     backgroundColor: "#fff",
-    padding: 10,
+    padding: 15,
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 5,
-    marginBottom: 10,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 6,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e3e3e3",
   },
   image: {
-    width: 80,
-    height: 80,
-    borderRadius: 10,
+    width: 90,
+    height: 90,
+    borderRadius: 12,
   },
   info: {
-    marginLeft: 10,
+    marginLeft: 15,
     flex: 1,
     justifyContent: "center",
   },
   name: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#333",
   },
   type: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#555",
+    marginVertical: 5,
   },
   price: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#007BFF",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalContent: {
+    width: 320,
+    padding: 20,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 8,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    marginBottom: 15,
+    color: "#333",
+  },
+  modalTextBold: {
+    fontWeight: "bold",
+    color: "#333",
+  },
+  
+  modalText: {
+    fontSize: 16,
+    marginVertical: 5,
+    color: "#555",
   },
 });
 
