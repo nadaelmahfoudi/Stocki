@@ -1,6 +1,14 @@
+// App.tsx
 import React from "react";
-import Navigator from "./src/navigation/Navigation";
+import { UserProvider } from "./src/context/UserContext";  
+import Navigator from "./src/navigation/Navigation";  
 
-export default function App() {
-    return <Navigator />;
-}
+const App: React.FC = () => {
+  return (
+    <UserProvider>  
+      <Navigator />
+    </UserProvider>
+  );
+};
+
+export default App;

@@ -1,8 +1,22 @@
-import React from "react";
+import React, { useLayoutEffect } from "react";
 import { View, Text, StyleSheet } from "react-native";
+import { useNavigation } from "@react-navigation/native"; 
+import { useUser } from "../context/UserContext";  
+import HeaderMenu from "../components/HeaderMenu"; 
 
-const HomeScreen = ({ route }) => {
-  const { user } = route.params;
+const HomeScreen: React.FC = () => {
+  const navigation = useNavigation();
+  const { user } = useUser();  
+
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerLeft: () => <HeaderMenu />,  
+    });
+  }, [navigation]);
+
+  if (!user) {
+    return <Text>Loading...</Text>;  
+  }
 
   return (
     <View style={styles.container}>
