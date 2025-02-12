@@ -3,6 +3,7 @@ const path = require('path');
 const { exec } = require('child_process');
 require('./config/dotenv');
 const authRoutes = require('./routes/authRoutes');
+const productsRoutes = require('./routes/productsRoutes');
 const cors = require('cors');
 
 const app = express();
@@ -37,6 +38,7 @@ jsonServerProcess.on('close', (code) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api', productsRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
