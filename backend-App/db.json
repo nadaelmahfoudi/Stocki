@@ -91,6 +91,44 @@
             "at": "2025-02-02"
           }
         ]
+      },
+      {
+        "id": 4,
+        "name": "Bouteille d'eau",
+        "type": "Informatique",
+        "barcode": "6111035001673",
+        "price": 1200,
+        "solde": 1100,
+        "supplier": "HP",
+        "image": "https://mediazone.ma/uploads/images/products/16412/landing-page/assets/images/swiper-1.png",
+        "stocks": [
+          {
+            "id": 1999,
+            "name": "Gueliz B2",
+            "quantity": 21,
+            "localisation": {
+              "city": "Marrakesh",
+              "latitude": 31.628674,
+              "longitude": -7.992047
+            }
+          },
+          {
+            "id": 2991,
+            "name": "Lazari H2",
+            "quantity": 24,
+            "localisation": {
+              "city": "Oujda",
+              "latitude": 34.689404,
+              "longitude": -1.912823
+            }
+          }
+        ],
+        "editedBy": [
+          {
+            "warehousemanId": 1333,
+            "at": "2025-02-02"
+          }
+        ]
       }
     ],
     "warehousemans": [

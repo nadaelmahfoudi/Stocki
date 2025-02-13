@@ -1,7 +1,6 @@
 import React from "react";
 import { createDrawerNavigator, DrawerContentScrollView, DrawerItemList, DrawerItem } from "@react-navigation/drawer";
 import { useUser } from "../context/UserContext";
-import { useNavigation } from "@react-navigation/native";
 import { Text } from "react-native"; 
 import HomeScreen from "../screens/HomeScreen";
 import ListProductScreen from "../screens/ListProductScreen";
@@ -11,16 +10,15 @@ const Drawer = createDrawerNavigator();
 
 const CustomDrawerContent = (props) => {
   const { user, setUser } = useUser();
-  const navigation = useNavigation();
 
   const handleLogout = () => {
     setUser(null);
-    navigation.navigation("Login");
+    props.navigation.navigate("Login"); 
   };
 
   return (
     <DrawerContentScrollView {...props}>
-      <DrawerItemList {...props} />  
+      <DrawerItemList {...props} />
       {user && (
         <DrawerItem 
           label={() => <Text style={{ color: "red" }}>Logout</Text>} 
