@@ -11,7 +11,7 @@ const ListProductScreen: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://172.16.11.246:5000/api/products");
+        const response = await axios.get("http://192.168.218.194:5000/api/products");
         setProducts(response.data);
       } catch (error) {
         console.error("Erreur lors de la récupération des produits :", error);
