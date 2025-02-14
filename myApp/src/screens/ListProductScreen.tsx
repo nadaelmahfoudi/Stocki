@@ -8,6 +8,7 @@ const ListProductScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(''); 
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   const [minQuantity, setMinQuantity] = useState<string>('');
@@ -27,6 +28,13 @@ const ListProductScreen: React.FC = () => {
     };
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    const filtered = products.filter(product =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
 
   const filterProducts = () => {
     const filtered = products.filter((product) => {
@@ -48,6 +56,7 @@ const ListProductScreen: React.FC = () => {
     setMaxPrice('');
     setMinQuantity('');
     setMaxQuantity('');
+    setSearchQuery('');
     setFilteredProducts(products);
   };
 
@@ -67,8 +76,14 @@ const ListProductScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Liste des Produits</Text>
+      <TextInput
+        style={styles.searchInput}
+        placeholder="Rechercher par nom..."
+        value={searchQuery}
+        onChangeText={setSearchQuery}
+        autoCapitalize="none"
+      />
 
-      {/* Filtres */}
       <View style={styles.filterContainer}>
         <View style={styles.row}>
           <TextInput
@@ -151,6 +166,14 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#F5F7FA", padding: 15 },
   title: { fontSize: 24, fontWeight: "bold", textAlign: "center", marginVertical: 20, color: "#333" },
   loaderContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  searchInput: {
+    backgroundColor: "#fff",
+    padding: 10,
+    borderRadius: 8,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    marginBottom: 15,
+  },
   card: { flexDirection: "row", backgroundColor: "#fff", padding: 15, borderRadius: 10, marginBottom: 12, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 6, elevation: 6 },
   image: { width: 90, height: 90, borderRadius: 12 },
   info: { marginLeft: 15, flex: 1 },
@@ -164,6 +187,11 @@ const styles = StyleSheet.create({
   resetButton: { backgroundColor: "#d9534f" },
   buttonText: { color: "#fff", fontWeight: "bold" },
   closeButton: { backgroundColor: "#007BFF", padding: 10, borderRadius: 8, marginTop: 10 },
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.5)" },
+  modalContent: { backgroundColor: "#fff", padding: 20, borderRadius: 10, width: "85%", alignItems: "center" },
+  modalTitle: { fontSize: 22, fontWeight: "bold", marginBottom: 10 },
+  modalText: { fontSize: 16, marginVertical: 5 },
+  modalTextBold: { fontWeight: "bold" },
 });
 
 export default ListProductScreen;
