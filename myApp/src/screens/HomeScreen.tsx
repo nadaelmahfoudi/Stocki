@@ -1,23 +1,14 @@
-import React, { useEffect, useLayoutEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { useUser } from "../context/UserContext";
-import HeaderMenu from "../components/HeaderMenu";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Button, TextInput } from "react-native";
 import { Camera, CameraView } from 'expo-camera';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 
 const HomeScreen: React.FC = () => {
-  const navigation = useNavigation();
-  const { user } = useUser();
-  const [hasPermission, setHasPermission] = useState(null);
+  const [hasPermission, setHasPermission] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [isCameraVisible, setIsCameraVisible] = useState(false);
-  const [productExists, setProductExists] = useState(null);
-
-  useLayoutEffect(() => {
-    navigation.setOptions({ headerLeft: () => <HeaderMenu /> });
-  }, [navigation]);
+  const [product, setProduct] = useState<any>(null);
+  const [initialStocks, setInitialStocks] = useState<any>({});  
 
   useEffect(() => {
     (async () => {
@@ -26,101 +17,145 @@ const HomeScreen: React.FC = () => {
     })();
   }, []);
 
-  const handleBarCodeScanned = async ({ type, data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
     try {
-      const response = await axios.get(`http://192.168.218.194:5000/api/products/${data}`);
+      const response = await axios.get(`http://172.16.11.246:5000/api/products/${data}`);
+      setProduct(response.data.exists ? response.data.product : null);
       if (response.data.exists) {
-        alert(`Product found: ${response.data.name}`);
-      } else {
-        setProductExists(false);
+        const stocks = response.data.product.stocks.reduce((acc, stock) => {
+          acc[stock.id] = stock.quantity;
+          return acc;
+        }, {});
+        setInitialStocks(stocks);
       }
-    } catch (error) {
-      alert('Error fetching product data.');
+    } catch {
+      alert('Product not found.');
     }
   };
 
-  const handleAddProduct = () => {
-    navigation.navigate('AddProductScreen');
+  const handleStockChange = (stockId: number, quantityChange: number) => {
+    setProduct(prevProduct => {
+      const updatedStocks = prevProduct.stocks.map(stock =>
+        stock.id === stockId
+          ? { ...stock, quantity: stock.quantity + quantityChange }
+          : stock
+      );
+      return { ...prevProduct, stocks: updatedStocks };
+    });
   };
 
-  if (!user) return <Text>Loading...</Text>;
+  const saveChanges = async () => {
+    try {
+      const stockUpdates = product.stocks.map((stock) => {
+        const initialQuantity = initialStocks[stock.id];
+        const newQuantity = stock.quantity;
+        if (newQuantity !== initialQuantity) {
+          return axios.put(`http://172.16.11.246:5000/api/stocks/${product.id}/${stock.id}`, {
+            quantityChange: newQuantity - initialQuantity,
+          });
+        }
+        return null; 
+      }).filter(Boolean);
+
+      if (stockUpdates.length > 0) {
+        await Promise.all(stockUpdates);
+        alert('Stock updated successfully');
+        setInitialStocks({}); 
+      } else {
+        alert('No changes to update.');
+      }
+    } catch (error) {
+      console.error("Error saving stock changes:", error);
+      alert("Failed to save changes.");
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.welcome}>Hello, {user.name}! 🎉</Text>
-      <Text style={styles.details}>Warehouse ID: {user.warehouseId}</Text>
-
       <TouchableOpacity style={styles.scanButton} onPress={() => setIsCameraVisible(true)}>
-        <MaterialCommunityIcons name="barcode-scan" size={24} color="white" />
         <Text style={styles.scanButtonText}>Scan</Text>
       </TouchableOpacity>
 
-      <Modal visible={isCameraVisible} animationType="slide">
-        {hasPermission === null ? (
-          <Text>Requesting camera permission...</Text>
-        ) : hasPermission === false ? (
-          <Text>No access to camera</Text>
-        ) : (
-          <CameraView
-            style={StyleSheet.absoluteFillObject}
-            onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
-          />
-        )}
-        {productExists === false && (
-          <TouchableOpacity style={styles.addButton} onPress={handleAddProduct}>
-            <Text style={styles.addButtonText}>Add Product</Text>
-          </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.closeButton} onPress={() => setIsCameraVisible(false)}>
-          <Text style={styles.closeButtonText}>Close</Text>
-        </TouchableOpacity>
+      <Modal visible={isCameraVisible} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          {hasPermission ? (
+            <CameraView
+              style={StyleSheet.absoluteFillObject}
+              onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
+            />
+          ) : <Text>No access to camera</Text>}
+
+          {scanned && (
+            <View style={styles.modalContent}>
+              {product ? (
+                <>
+                  <Text style={styles.modalTitle}>{product.name}</Text>
+                  <Text style={styles.modalText}><Text style={styles.modalTextBold}>Type:</Text> {product.type}</Text>
+                  <Text style={styles.modalText}><Text style={styles.modalTextBold}>Price:</Text> {product.price} DH</Text>
+                  <Text style={styles.modalText}><Text style={styles.modalTextBold}>Supplier:</Text> {product.supplier}</Text>
+                  
+
+                  {product.stocks?.map((stock, index) => {
+                    return (
+                      <View key={index} style={styles.stockContainer}>
+                        <Text style={styles.modalText}>
+                          <Text style={styles.modalTextBold}>Stock {index + 1}:</Text> {stock.quantity} units - {stock.localisation.city}
+                        </Text>
+                        <View style={styles.stockInputContainer}>
+                          <TouchableOpacity onPress={() => handleStockChange(stock.id, -1)} style={styles.stockButton}>
+                            <Text style={styles.stockButtonText}>-</Text>
+                          </TouchableOpacity>
+                          <TextInput
+                            style={styles.stockInput}
+                            value={String(stock.quantity)}
+                            editable={false}
+                          />
+                          <TouchableOpacity onPress={() => handleStockChange(stock.id, 1)} style={styles.stockButton}>
+                            <Text style={styles.stockButtonText}>+</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    );
+                  })}
+
+                  <TouchableOpacity style={styles.addButton} onPress={saveChanges}>
+                    <Text style={styles.addButtonText}>Save Changes</Text>
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <TouchableOpacity style={styles.addButton}>
+                  <Text style={styles.addButtonText}>Add Product</Text>
+                </TouchableOpacity>
+              )}
+              <Button title="Close" onPress={() => {
+                setScanned(false);
+                setIsCameraVisible(false);
+              }} />
+            </View>
+          )}
+        </View>
       </Modal>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
-  },
-  welcome: { fontSize: 24, fontWeight: "bold", color: "#333" },
-  details: { fontSize: 18, marginTop: 10, color: "#666" },
-  scanButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FF9F43',
-    padding: 15,
-    borderRadius: 10,
-    marginTop: 20,
-  },
-  scanButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 10,
-  },
-  addButton: {
-    position: 'absolute',
-    bottom: 80,
-    alignSelf: 'center',
-    backgroundColor: '#4CAF50',
-    padding: 12,
-    borderRadius: 10,
-  },
-  addButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
-  closeButton: {
-    position: 'absolute',
-    bottom: 30,
-    alignSelf: 'center',
-    backgroundColor: '#FF6B6B',
-    padding: 10,
-    borderRadius: 10,
-  },
-  closeButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  container: { flex: 1, justifyContent: "center", alignItems: "center" },
+  scanButton: { padding: 12, borderRadius: 10, backgroundColor: '#FF9F43' },
+  scanButtonText: { color: 'white', fontWeight: 'bold' },
+  modalOverlay: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0, 0, 0, 0.7)" },
+  modalContent: { width: 320, padding: 20, backgroundColor: "#fff", borderRadius: 12, alignItems: "center", elevation: 8 },
+  modalTitle: { fontSize: 22, fontWeight: "bold", marginBottom: 15, color: "#333" },
+  modalTextBold: { fontWeight: "bold", color: "#333" },
+  modalText: { fontSize: 16, marginVertical: 5, color: "#555" },
+  addButton: { padding: 12, borderRadius: 10, backgroundColor: '#4CAF50' },
+  addButtonText: { color: 'white', fontWeight: 'bold' },
+  stockContainer: { marginVertical: 10, width: '100%' },
+  stockInputContainer: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  stockButton: { padding: 10, backgroundColor: '#FF9F43', borderRadius: 5 },
+  stockButtonText: { color: 'white', fontWeight: 'bold', fontSize: 18 },
+  stockInput: { width: 50, textAlign: 'center', fontSize: 16, padding: 5, borderWidth: 1, borderRadius: 5, borderColor: '#ccc' }
 });
 
 export default HomeScreen;
