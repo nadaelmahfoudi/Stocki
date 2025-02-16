@@ -12,7 +12,7 @@ const LoginScreen: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await axios.post("http://172.16.11.246:5000/api/auth/login", {  
+      const response = await axios.post("http://192.168.0.120:5000/api/auth/login", {  
         secretKey,
       });
 

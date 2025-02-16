@@ -6,13 +6,8 @@ import * as FileSystem from 'expo-file-system';
 
 const generatePdf = async () => {
   try {
-    // Fetch product data from API
-    const response = await axios.get("http://172.16.11.246:5000/api/products");
-
-    // Extract product data from response
+    const response = await axios.get("http://192.168.0.120:5000/api/products");
     const products = response.data;
-
-    // Create dynamic HTML content from the fetched products
     const htmlContent = `
       <html>
         <head>
@@ -38,11 +33,7 @@ const generatePdf = async () => {
         </body>
       </html>
     `;
-
-    // Generate the PDF from HTML content
     const { uri } = await Print.printToFileAsync({ html: htmlContent });
-
-    // Optionally save the PDF file to File System
     const fileUri = FileSystem.documentDirectory + 'product-list.pdf';
     await FileSystem.moveAsync({
       from: uri,
@@ -50,11 +41,7 @@ const generatePdf = async () => {
     });
 
     console.log('PDF saved to:', fileUri);
-
-    // Optionally, print the PDF
     await Print.printAsync({ uri: fileUri });
-
-    // Share the PDF
     sharePdf(fileUri);
   } catch (error) {
     console.error("Error generating PDF:", error);

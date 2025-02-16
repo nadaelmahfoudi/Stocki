@@ -16,6 +16,45 @@ router.get('/products/:barcode', (req, res) => {
   }
 });
 
+router.post('/products', (req, res) => {
+  const { name, type, barcode, price, solde, supplier, image, stocks, editedBy } = req.body;
+
+  if (!name || !type || !barcode || !price || !solde || !supplier || !image || !stocks) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
+
+  try {
+    const db = readDB();
+    const newProductId = db.products.length > 0 ? Math.max(...db.products.map(p => p.id)) + 1 : 1;
+    const updatedStocks = stocks.map((stock, index) => ({
+      id: newProductId * 1000 + index + 1,
+      name: stock.name,
+      quantity: stock.quantity,
+      localisation: stock.localisation
+    }));
+
+    const newProduct = {
+      id: newProductId,
+      name,
+      type,
+      barcode,
+      price,
+      solde,
+      supplier,
+      image,
+      stocks: updatedStocks,
+      editedBy: editedBy || [] 
+    };
+
+    db.products.push(newProduct);
+    writeDB(db);
+
+    res.status(201).json({ message: 'Product added successfully', product: newProduct });
+  } catch (err) {
+    console.error('Error adding product:', err);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
 router.put('/stocks/:productId/:stockId', (req, res) => {
   const { productId, stockId } = req.params;
   const { quantityChange } = req.body;

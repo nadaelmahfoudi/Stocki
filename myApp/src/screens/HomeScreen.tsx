@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, Button, TextInput } from "react-native";
 import { Camera, CameraView } from 'expo-camera';
 import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen: React.FC = () => {
   const [hasPermission, setHasPermission] = useState(false);
@@ -9,6 +10,8 @@ const HomeScreen: React.FC = () => {
   const [isCameraVisible, setIsCameraVisible] = useState(false);
   const [product, setProduct] = useState<any>(null);
   const [initialStocks, setInitialStocks] = useState<any>({});  
+  const [barcode, setBarcode] = useState<string>('');
+  const navigation = useNavigation();
 
   useEffect(() => {
     (async () => {
@@ -19,8 +22,9 @@ const HomeScreen: React.FC = () => {
 
   const handleBarCodeScanned = async ({ data }) => {
     setScanned(true);
+    setBarcode(data);
     try {
-      const response = await axios.get(`http://172.16.11.246:5000/api/products/${data}`);
+      const response = await axios.get(`http://192.168.0.120:5000/api/products/${data}`);
       setProduct(response.data.exists ? response.data.product : null);
       if (response.data.exists) {
         const stocks = response.data.product.stocks.reduce((acc, stock) => {
@@ -51,7 +55,7 @@ const HomeScreen: React.FC = () => {
         const initialQuantity = initialStocks[stock.id];
         const newQuantity = stock.quantity;
         if (newQuantity !== initialQuantity) {
-          return axios.put(`http://172.16.11.246:5000/api/stocks/${product.id}/${stock.id}`, {
+          return axios.put(`http://192.168.0.120:5000/api/stocks/${product.id}/${stock.id}`, {
             quantityChange: newQuantity - initialQuantity,
           });
         }
@@ -94,7 +98,6 @@ const HomeScreen: React.FC = () => {
                   <Text style={styles.modalText}><Text style={styles.modalTextBold}>Type:</Text> {product.type}</Text>
                   <Text style={styles.modalText}><Text style={styles.modalTextBold}>Price:</Text> {product.price} DH</Text>
                   <Text style={styles.modalText}><Text style={styles.modalTextBold}>Supplier:</Text> {product.supplier}</Text>
-                  
 
                   {product.stocks?.map((stock, index) => {
                     return (
@@ -124,9 +127,13 @@ const HomeScreen: React.FC = () => {
                   </TouchableOpacity>
                 </>
               ) : (
-                <TouchableOpacity style={styles.addButton}>
-                  <Text style={styles.addButtonText}>Add Product</Text>
-                </TouchableOpacity>
+<TouchableOpacity 
+  style={styles.addButton} 
+  onPress={() => navigation.navigate('AddProduct', { barcode })}
+>
+  <Text style={styles.addButtonText}>Add Product</Text>
+</TouchableOpacity>
+
               )}
               <Button title="Close" onPress={() => {
                 setScanned(false);
