@@ -7,6 +7,7 @@ import ListProductScreen from "../screens/ListProductScreen";
 import LoginScreen from "../screens/LoginScreen";
 import PDFScreen from "../screens/PDFScreen";
 import StatisticScreen from "../screens/StatisticScreen";
+import AddProductScreen from "../screens/AddProductScreen";
 
 const Drawer = createDrawerNavigator();
 
@@ -43,6 +44,7 @@ const DrawerNavigation: React.FC = () => {
           <Drawer.Screen name="Products" component={ListProductScreen} />
           <Drawer.Screen name="Generate PDF and Share" component={PDFScreen} />
           <Drawer.Screen name="Statistics" component={StatisticScreen} />
+          <Drawer.Screen name="AddProduct" component={AddProductScreen} />
         </>
       ) : (
         <Drawer.Screen name="Login" component={LoginScreen} />
