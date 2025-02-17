@@ -180,18 +180,17 @@ const ListProductScreen: React.FC = () => {
         </Text>
 
         <Text style={[styles.modalText, { marginTop: 10, fontWeight: 'bold' }]}>Stocks:</Text>
-        {selectedProduct.stocks.map((stock: any, index: number) => (
-          <Text
-            key={index}
-            style={[
-              styles.modalText,
-              stock.quantity === 0 ? { color: 'red' } : {} 
-            ]}
-          >
-            - {stock.name} ({stock.localisation.city}): {stock.quantity}
-          </Text>
-        ))}
-
+        {selectedProduct.stocks.map((stock: any, index: number) => {
+          const stockColor = stock.quantity < 5 ? 'yellow' : stock.quantity === 0 ? 'red' : 'black';
+          return (
+            <Text
+              key={index}
+              style={[styles.modalText, { color: stockColor }]}
+            >
+              - {stock.name} ({stock.localisation.city}): {stock.quantity}
+            </Text>
+          );
+        })}
         <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
           <Text style={styles.buttonText}>Fermer</Text>
         </TouchableOpacity>
