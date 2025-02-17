@@ -95,7 +95,7 @@
       "id": 4,
       "name": "Bouteille d'eau",
       "type": "Informatique",
-      "barcode": "6111035001673",
+      "barcode": "61110350016735",
       "price": 1200,
       "solde": 1100,
       "supplier": "HP",
@@ -199,6 +199,34 @@
         }
       ],
       "editedBy": []
+    },
+    {
+      "id": 7,
+      "name": "test",
+      "type": "Test",
+      "barcode": "18524864964",
+      "price": 20,
+      "solde": 10,
+      "supplier": "Test",
+      "image": "https://example.com/laptop.png",
+      "stocks": [
+        {
+          "id": 7001,
+          "name": "S1",
+          "quantity": 20,
+          "localisation": {
+            "city": "Marrakesh ",
+            "latitude": 0,
+            "longitude": 0
+          }
+        }
+      ],
+      "editedBy": [
+        {
+          "warehousemanId": "user-id-placeholder",
+          "at": "2025-02-17T13:23:03.002Z"
+        }
+      ]
     }
   ],
   "warehousemans": [
