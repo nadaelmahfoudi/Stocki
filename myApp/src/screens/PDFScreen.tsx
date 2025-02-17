@@ -6,7 +6,7 @@ import * as FileSystem from 'expo-file-system';
 
 const generatePdf = async () => {
   try {
-    const response = await axios.get("http://192.168.0.120:5000/api/products");
+    const response = await axios.get("http://172.16.11.246:5000/api/products");
     const products = response.data;
     const htmlContent = `
       <html>

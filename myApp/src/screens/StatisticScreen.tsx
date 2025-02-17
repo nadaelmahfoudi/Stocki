@@ -47,7 +47,7 @@ const StatisticScreen = () => {
         return;
       }
       try {
-        const response = await axios.get(`http://192.168.0.120:5000/api/statistics/${user.id}`);
+        const response = await axios.get(`http://172.16.11.246:5000/api/statistics/${user.id}`);
         setStatistics(response.data);
       } catch (err: any) {
         setError('Failed to fetch statistics');
