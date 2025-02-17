@@ -17,7 +17,7 @@ const ListProductScreen: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await axios.get("http://192.168.0.120:5000/api/products");
+        const response = await axios.get("http://172.16.11.246:5000/api/products");
         setProducts(response.data);
         setFilteredProducts(response.data);
       } catch (error) {
