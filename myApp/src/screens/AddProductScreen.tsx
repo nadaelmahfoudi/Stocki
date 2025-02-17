@@ -1,17 +1,14 @@
-import React, { useState, useContext, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, Alert, ScrollView } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useUser } from '../context/UserContext';
+import axios from 'axios';
 
 const AddProductScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { user } = useUser();
 
-
+  // Initialize barcode with either the passed param or an empty string
   const [barcode, setBarcode] = useState(route.params?.barcode || '');
-console.log('Scanned Barcode:', barcode);
   const [name, setName] = useState('');
   const [type, setType] = useState('');
   const [price, setPrice] = useState('');
@@ -20,8 +17,11 @@ console.log('Scanned Barcode:', barcode);
   const [image, setImage] = useState('');
   const [stocks, setStocks] = useState([{ name: '', quantity: '', localisation: '' }]);
 
+  // Effect hook to handle route changes
   useEffect(() => {
-    if (route.params?.barcode) setBarcode(route.params.barcode);
+    if (route.params?.barcode) {
+      setBarcode(route.params.barcode);
+    }
   }, [route.params?.barcode]);
 
   const handleStockChange = (index, field, value) => {
@@ -39,11 +39,14 @@ console.log('Scanned Barcode:', barcode);
       Alert.alert('Erreur', 'Veuillez remplir tous les champs.');
       return;
     }
-
+  
+    // Check if barcode is received from route or set manually
+    const finalBarcode = barcode || 'default-manual-barcode';  // Replace 'default-manual-barcode' with any default value if needed
+  
     const newProduct = {
       name,
       type,
-      barcode,
+      barcode: finalBarcode,
       price: parseFloat(price),
       solde: parseFloat(solde),
       supplier,
@@ -57,11 +60,11 @@ console.log('Scanned Barcode:', barcode);
           longitude: 0
         }
       })),
-      editedBy: [{ warehousemanId: user.id, at: new Date().toISOString() }]
+      editedBy: [{ warehousemanId: 'user-id-placeholder', at: new Date().toISOString() }]
     };
-
+  
     try {
-      const response = await axios.post('http://192.168.0.120:5000/api/products', newProduct);
+      const response = await axios.post('http://172.16.11.246:5000/api/products', newProduct);
       if (response.status === 201) {
         Alert.alert('Succès', 'Produit ajouté avec succès.');
         navigation.goBack();
@@ -73,33 +76,34 @@ console.log('Scanned Barcode:', barcode);
       Alert.alert('Erreur', 'Une erreur s\'est produite.');
     }
   };
+  
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text>Nom du produit :</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.label}>Nom du produit :</Text>
       <TextInput value={name} onChangeText={setName} placeholder="Nom du produit" style={styles.input} />
 
-      <Text>Type :</Text>
+      <Text style={styles.label}>Type :</Text>
       <TextInput value={type} onChangeText={setType} placeholder="Type de produit" style={styles.input} />
 
-      <Text>Code-barres :</Text>
+      <Text style={styles.label}>Code-barres :</Text>
       <TextInput value={barcode} onChangeText={setBarcode} placeholder="Code-barres" keyboardType="numeric" style={styles.input} />
 
-      <Text>Prix :</Text>
+      <Text style={styles.label}>Prix :</Text>
       <TextInput value={price} onChangeText={setPrice} placeholder="Prix" keyboardType="numeric" style={styles.input} />
 
-      <Text>Solde :</Text>
+      <Text style={styles.label}>Solde :</Text>
       <TextInput value={solde} onChangeText={setSolde} placeholder="Solde" keyboardType="numeric" style={styles.input} />
 
-      <Text>Fournisseur :</Text>
+      <Text style={styles.label}>Fournisseur :</Text>
       <TextInput value={supplier} onChangeText={setSupplier} placeholder="Fournisseur" style={styles.input} />
 
-      <Text>URL de l'image :</Text>
+      <Text style={styles.label}>URL de l'image :</Text>
       <TextInput value={image} onChangeText={setImage} placeholder="URL de l'image" style={styles.input} />
 
-      <Text>Stocks :</Text>
+      <Text style={styles.label}>Stocks :</Text>
       {stocks.map((stock, index) => (
-        <View key={index} style={{ marginBottom: 10 }}>
+        <View key={index} style={styles.stockInputWrapper}>
           <TextInput
             placeholder="Nom du stock"
             value={stock.name}
@@ -128,7 +132,28 @@ console.log('Scanned Barcode:', barcode);
 };
 
 const styles = {
-  input: { borderWidth: 1, marginBottom: 10, padding: 10, borderRadius: 5 },
+  container: {
+    padding: 20,
+    backgroundColor: '#f4f9fc',
+  },
+  label: {
+    color: '#0f2a37',
+    fontSize: 16,
+    marginBottom: 5,
+    fontWeight: 'bold',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#3d7692',
+    marginBottom: 10,
+    padding: 10,
+    borderRadius: 5,
+    backgroundColor: '#ffffff',
+    fontSize: 16,
+  },
+  stockInputWrapper: {
+    marginBottom: 15,
+  },
 };
 
 export default AddProductScreen;

@@ -25,25 +25,25 @@ interface Product {
 interface ProductStatistics {
   totalProducts: number;
   outOfStock: number;
-  totalStockValue: number;
-  mostAddedProducts: { name: string, addedCount: number }[];
-  mostRemovedProducts: { name: string, removedCount: number }[];
+  totalQuantity: number; // Changed from totalStockValue
+  products: Product[];
 }
 
 const StatisticScreen = () => {
-  const { user } = useUser(); 
+  const { user } = useUser();
   const [statistics, setStatistics] = useState<ProductStatistics | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const calculateProductStockValue = (stocks: StockLocation[], price: number) => {
-    return stocks.reduce((total, stock) => total + (stock.quantity * price), 0);
+  const calculateTotalQuantity = (stocks: StockLocation[]) => {
+    return stocks.reduce((total, stock) => total + stock.quantity, 0);
   };
 
   useEffect(() => {
     const fetchStatistics = async () => {
       if (!user) {
         setError('User not found');
+        setLoading(false);
         return;
       }
       try {
@@ -57,12 +57,12 @@ const StatisticScreen = () => {
     };
 
     fetchStatistics();
-  }, [user]); 
+  }, [user]);
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#84bad5" />
       </View>
     );
   }
@@ -77,16 +77,24 @@ const StatisticScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Product Statistics for Warehouse {user?.id}</Text>
+      <Text style={styles.title}>Warehouse Statistics</Text>
 
+      {/* Product List */}
       {statistics?.products?.map((product) => {
-        const totalStockValue = calculateProductStockValue(product.stocks, product.price);
+        const totalQuantity = calculateTotalQuantity(product.stocks);
 
         return (
           <View key={product.id} style={styles.productContainer}>
             <Text style={styles.productName}>{product.name}</Text>
             <Text style={styles.productPrice}>Price: ${product.price}</Text>
-            <Text style={styles.productValue}>Total Stock Value: ${totalStockValue}</Text>
+            <Text
+              style={[
+                styles.productValue,
+                totalQuantity === 0 ? styles.outOfStockValue : {},
+              ]}
+            >
+              Total Stock Quantity: {totalQuantity}
+            </Text>
 
             <FlatList
               data={product.stocks}
@@ -102,6 +110,7 @@ const StatisticScreen = () => {
         );
       })}
 
+      {/* Statistics Overview */}
       <View style={styles.statItem}>
         <Text style={styles.statTitle}>Total Products:</Text>
         <Text style={styles.statValue}>{statistics?.totalProducts}</Text>
@@ -113,34 +122,8 @@ const StatisticScreen = () => {
       </View>
 
       <View style={styles.statItem}>
-        <Text style={styles.statTitle}>Total Stock Value:</Text>
-        <Text style={styles.statValue}>${statistics?.totalStockValue}</Text>
-      </View>
-
-      <View style={styles.statItem}>
-        <Text style={styles.statTitle}>Most Added Products:</Text>
-        <FlatList
-          data={statistics?.mostAddedProducts}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Text>{item.name}: {item.addedCount} added</Text>
-            </View>
-          )}
-        />
-      </View>
-
-      <View style={styles.statItem}>
-        <Text style={styles.statTitle}>Most Removed Products:</Text>
-        <FlatList
-          data={statistics?.mostRemovedProducts}
-          keyExtractor={(item, index) => index.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.listItem}>
-              <Text>{item.name}: {item.removedCount} removed</Text>
-            </View>
-          )}
-        />
+        <Text style={styles.statTitle}>Total Stock Quantity:</Text>
+        <Text style={styles.statValue}>{statistics?.totalQuantity}</Text>
       </View>
     </ScrollView>
   );
@@ -149,81 +132,86 @@ const StatisticScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
-    backgroundColor: '#f8f8f8',
+    backgroundColor: '#f4f9fc',
+    padding: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 32,
     fontWeight: 'bold',
-    marginBottom: 20,
     textAlign: 'center',
-    color: '#333',
+    color: '#0f2a37',
+    marginBottom: 20,
+    fontFamily: 'Roboto-Bold',
   },
   productContainer: {
-    marginBottom: 20,
-    padding: 16,
-    borderRadius: 10,
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 6,
+    shadowColor: '#0f2a37',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   productName: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#444',
+    fontWeight: '600',
+    color: '#3d7692',
   },
   productPrice: {
-    fontSize: 16,
+    fontSize: 18,
+    color: '#84bad5',
     marginTop: 8,
-    color: '#555',
   },
   productValue: {
-    fontSize: 16,
-    marginTop: 4,
-    color: '#555',
+    fontSize: 18,
+    color: '#84bad5',
+    marginTop: 6,
+  },
+  outOfStockValue: {
+    color: '#d9534f', // Red color for out-of-stock values
   },
   stockItem: {
-    paddingVertical: 8,
+    paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#e0e0e0',
   },
   stockText: {
     fontSize: 16,
-    color: '#333',
+    color: '#444',
   },
   locationText: {
     fontSize: 14,
-    color: '#777',
+    color: '#888',
   },
   statItem: {
-    marginBottom: 20,
-    padding: 16,
     backgroundColor: '#fff',
-    borderRadius: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    borderRadius: 12,
+    padding: 18,
+    marginBottom: 20,
+    elevation: 4,
+    shadowColor: '#0f2a37',
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   statTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '600',
-    color: '#333',
+    color: '#3d7692',
   },
   statValue: {
-    fontSize: 16,
-    color: '#666',
-    marginTop: 4,
-  },
-  listItem: {
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    fontSize: 18,
+    color: '#0f2a37',
+    marginTop: 8,
   },
   errorText: {
-    color: 'red',
+    color: '#d9534f',
     fontSize: 18,
     fontWeight: 'bold',
   },
